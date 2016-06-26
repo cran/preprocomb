@@ -5,19 +5,20 @@ NULL
 
 setClass("PhaseClass", representation(objectname="character", preprotransformations="list", preimpute="logical"))
 
-#' setphase
+#' constructor function for defining a preprocessing phase.
 #'
-#' setphase is a constructor function for defining a phase.
-#' setphases initializes a PhaseClass object.
+#' Preprocessing phases consist of preprocessing techniques defined with setpreprocessor().
+#' Phases can be defined with setphase() and combined to a grid of combinations with setgrid().
 #'
 #' @param phasename (character) name of the phase
 #' @param preprocessor (character) vector of preprocessors (see ?setpreprocessor) belonging to the phase
-#' @param preimpute (logical) whether phase is executed before missing value imputation
+#' @param preimpute (logical) whether phase is missing value imputation
 #' @return a PhaseClass object
 #' @examples
 #' ## imputation <- setphase("imputation", c("naomit", "meanimpute"), TRUE)
 #' @export
-#' @details All elements of argument 'preprocessor' must point to PreprocessorClass objects constructed with function 'setpreprocessor()'.
+#' @details All elements of argument 'preprocessor' must point to PreprocessorClass objects constructed with function 'setpreprocessor()'. \cr
+#' If dataset contains missing values, missing value imputation must be the first phase.
 
 setphase <- function(phasename, preprocessor, preimpute){
 

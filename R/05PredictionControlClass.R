@@ -1,10 +1,10 @@
 #' @include 04GridClass.R
 NULL
 
-#' getprogrammaticprediction
+#' parallel computation of classification accuracy holdout rounds
 #'
-#' getprogrammaticprediction outputs classification accuracy. This function is exported
-#' to be used by package metaheur.
+#' This function is used internally and exported for package 'metaheur'.
+#'
 #' @param preprocesseddataset (DataClass)
 #' @param predictors caret models
 #' @param nholdout number of holdout rounds
@@ -21,10 +21,12 @@ getprogrammaticprediction <- function(preprocesseddataset, predictors, nholdout)
     fitControl <- caret::trainControl(method="boot", number=2, savePredictions=TRUE)
 
     klist <- list()
+    packagevector <- character()
     for (k in 1:length(predictors))
     {
-      mod <- caret::train(y ~., data=preprocesseddataset, method=predictors[k], trControl=fitControl)
+      mod <- suppressWarnings(caret::train(y ~., data=preprocesseddataset, method=predictors[k], trControl=fitControl))
       klist <- c(klist, list(mod$bestTune))
+      packagevector <- c(packagevector, mod$modelInfo$library[1])
     }
 
     if (length(predictors)!=length(klist)) stop("One of the selected models does not have tuning parameters.")
@@ -34,13 +36,12 @@ getprogrammaticprediction <- function(preprocesseddataset, predictors, nholdout)
 
     modelsresults <- data.frame(matrix(ncol=length(predictors)+1, nrow=nholdout))
 
-    for (l in 1:length(predictors))
+    for (l in 1:length(predictors)) ## for each classifier
     {
 
-      holdoutresults <- numeric()
 
-      for(m in 1:nholdout)
-      {
+
+      holdoutaccuracy <- foreach::foreach(j=1:nholdout, .combine='c', .packages=c('caret', packagevector)) %dopar% {
 
         training <- caret::createDataPartition(preprocesseddataset$y, times=1, list=FALSE, p=0.66)[,1]
         intrain <- preprocesseddataset[training,]
@@ -52,26 +53,30 @@ getprogrammaticprediction <- function(preprocesseddataset, predictors, nholdout)
         mod <- caret::train(y ~., data=intrain, method=predictors[l], tuneGrid=klist[[l]], trControl=trainControl(method="none"))
         prediction <- predict(mod, newdata=intest)
 
-        holdoutresults[m] <- mean(prediction==intest$y)
+        holdoutaccuracy <- mean(prediction==intest$y)
 
-        }, error= function(e) return({holdoutresults[m] <- NA}) )
+        }, error= function(e) return({holdoutaccuracy <- NA}) )
 
         }
-      modelsresults[,l] <- holdoutresults
+      modelsresults[,l] <- holdoutaccuracy
     }
 
     # add one column for mean of predictors
-    modelsresults[,length(predictors)+1] <- apply(modelsresults, 1, function(x) mean(x, na.rm=TRUE))
+    modelsresults[,ncol(modelsresults)] <- apply(modelsresults, 1, function(x) mean(x, na.rm=TRUE))
 
   return(modelsresults)
 
-}, error= function(e) return({modelsresults <- rep(NA, length(predictors)+1)} ))
+}, error= function(e) return({modelsresults <- rep(NA, ncol(modelsresults))} ))
 
 }
+
+# COMPUTE CLUSTERING TENDENCY
 
 gethopkins <- function(dat){
 output <- unlist(clustertend::hopkins(dat@x, n=as.integer(nrow(dat@x)/3)))
 }
+
+# COMPUTE SKEWNESS OF OUTLIER SCORES
 
 getorh <- function(dat){
   orh_score <- suppressMessages(DMwR::outliers.ranking(dat@x))
@@ -79,17 +84,28 @@ getorh <- function(dat){
   output <- e1071::skewness(orh_rank)
 }
 
+
+## BY SEARCH TYPE, SET WHICH ROWS IN THE GRID WILL BE EVALUATED
+
 gridrowsinsearch <- function(searchmethod, grid){
 
   # Optimization method
-  if (searchmethod=="exhaustive") {preproseq <- seq(1, nrow(grid@grid), 1)}
-  if (searchmethod=="random") {preproseq <- sample(1:nrow(grid@grid), as.integer(nrow(grid@grid)/5))}
+  if (searchmethod=="exhaustive") {
+    preproseq <- seq(1, nrow(grid@grid), 1)}
+  if (searchmethod=="random") {
+    preproseq <- sample(1:nrow(grid@grid), as.integer(0.2*(nrow(grid@grid))))
+    preproseq <- preproseq[order(preproseq)]}
   if (searchmethod=="grid") {
-    preproseq <- as.list(seq(1, nrow(grid@grid), by=as.integer(nrow(grid@grid)/(nrow(grid@grid)/10))))
-    preproseq <- unlist(lapply(preproseq, function(x) x+sample(0:2, 1)))
-  }
+    teninterval <- floor(nrow(grid@grid)/10)
+    preproseq <- seq(1, nrow(grid@grid), teninterval)}
+    #seteverytenth <- as.integer(nrow(grid@grid)/(nrow(grid@grid)/10))
+    #preproseq <- as.list(seq(1, nrow(grid@grid), by=seteverytenth))
+    #preproseq <- unlist(lapply(preproseq, function(x) x+sample(0:2, 1)))
+
   return(preproseq)
 }
+
+
 
 ## PREDICTION ================================================
 
@@ -119,12 +135,11 @@ combinationevaluation <- function(predictors, gridclassobject, nholdout, searchm
 
   # for each selected row in the grid
 
-  print(paste("Number of combinations in evaluation:", length(gridrowsincludedinsearch)))
   cat("Combination number in process:")
 
   for (j in gridrowsincludedinsearch)
   {
-    cat(" ",j,",", sep="")
+    cat(" ",j,"/",length(gridrowsincludedinsearch), sep="")
 
     dat <- grid@data[[j]]
     dat1 <- data.frame(y=dat@y, x=dat@x)

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<meta name="author" content="Markus Vattulainen" />
+
+<meta name="date" content="2016-06-26" />
+
+<title>Preprocomb</title>
+
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+</style>
+
+
+
+<link href="data:text/css;charset=utf-8,body%20%7B%0Abackground%2Dcolor%3A%20%23fff%3B%0Amargin%3A%201em%20auto%3B%0Amax%2Dwidth%3A%20700px%3B%0Aoverflow%3A%20visible%3B%0Apadding%2Dleft%3A%202em%3B%0Apadding%2Dright%3A%202em%3B%0Afont%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0Afont%2Dsize%3A%2014px%3B%0Aline%2Dheight%3A%201%2E35%3B%0A%7D%0A%23header%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0A%23TOC%20%7B%0Aclear%3A%20both%3B%0Amargin%3A%200%200%2010px%2010px%3B%0Apadding%3A%204px%3B%0Awidth%3A%20400px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Aborder%2Dradius%3A%205px%3B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Afont%2Dsize%3A%2013px%3B%0Aline%2Dheight%3A%201%2E3%3B%0A%7D%0A%23TOC%20%2Etoctitle%20%7B%0Afont%2Dweight%3A%20bold%3B%0Afont%2Dsize%3A%2015px%3B%0Amargin%2Dleft%3A%205px%3B%0A%7D%0A%23TOC%20ul%20%7B%0Apadding%2Dleft%3A%2040px%3B%0Amargin%2Dleft%3A%20%2D1%2E5em%3B%0Amargin%2Dtop%3A%205px%3B%0Amargin%2Dbottom%3A%205px%3B%0A%7D%0A%23TOC%20ul%20ul%20%7B%0Amargin%2Dleft%3A%20%2D2em%3B%0A%7D%0A%23TOC%20li%20%7B%0Aline%2Dheight%3A%2016px%3B%0A%7D%0Atable%20%7B%0Amargin%3A%201em%20auto%3B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dcolor%3A%20%23DDDDDD%3B%0Aborder%2Dstyle%3A%20outset%3B%0Aborder%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0Aborder%2Dwidth%3A%202px%3B%0Apadding%3A%205px%3B%0Aborder%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dstyle%3A%20inset%3B%0Aline%2Dheight%3A%2018px%3B%0Apadding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0Aborder%2Dleft%2Dstyle%3A%20none%3B%0Aborder%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Ap%20%7B%0Amargin%3A%200%2E5em%200%3B%0A%7D%0Ablockquote%20%7B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Apadding%3A%200%2E25em%200%2E75em%3B%0A%7D%0Ahr%20%7B%0Aborder%2Dstyle%3A%20solid%3B%0Aborder%3A%20none%3B%0Aborder%2Dtop%3A%201px%20solid%20%23777%3B%0Amargin%3A%2028px%200%3B%0A%7D%0Adl%20%7B%0Amargin%2Dleft%3A%200%3B%0A%7D%0Adl%20dd%20%7B%0Amargin%2Dbottom%3A%2013px%3B%0Amargin%2Dleft%3A%2013px%3B%0A%7D%0Adl%20dt%20%7B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Aul%20%7B%0Amargin%2Dtop%3A%200%3B%0A%7D%0Aul%20li%20%7B%0Alist%2Dstyle%3A%20circle%20outside%3B%0A%7D%0Aul%20ul%20%7B%0Amargin%2Dbottom%3A%200%3B%0A%7D%0Apre%2C%20code%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0Aborder%2Dradius%3A%203px%3B%0Acolor%3A%20%23333%3B%0Awhite%2Dspace%3A%20pre%2Dwrap%3B%20%0A%7D%0Apre%20%7B%0Aborder%2Dradius%3A%203px%3B%0Amargin%3A%205px%200px%2010px%200px%3B%0Apadding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Acode%20%7B%0Afont%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0Afont%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0Apadding%3A%202px%200px%3B%0A%7D%0Adiv%2Efigure%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0Abackground%2Dcolor%3A%20%23FFFFFF%3B%0Apadding%3A%202px%3B%0Aborder%3A%201px%20solid%20%23DDDDDD%3B%0Aborder%2Dradius%3A%203px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Amargin%3A%200%205px%3B%0A%7D%0Ah1%20%7B%0Amargin%2Dtop%3A%200%3B%0Afont%2Dsize%3A%2035px%3B%0Aline%2Dheight%3A%2040px%3B%0A%7D%0Ah2%20%7B%0Aborder%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Apadding%2Dbottom%3A%202px%3B%0Afont%2Dsize%3A%20145%25%3B%0A%7D%0Ah3%20%7B%0Aborder%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Afont%2Dsize%3A%20120%25%3B%0A%7D%0Ah4%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0Amargin%2Dleft%3A%208px%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Ah5%2C%20h6%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23ccc%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Aa%20%7B%0Acolor%3A%20%230033dd%3B%0Atext%2Ddecoration%3A%20none%3B%0A%7D%0Aa%3Ahover%20%7B%0Acolor%3A%20%236666ff%3B%20%7D%0Aa%3Avisited%20%7B%0Acolor%3A%20%23800080%3B%20%7D%0Aa%3Avisited%3Ahover%20%7B%0Acolor%3A%20%23BB00BB%3B%20%7D%0Aa%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0Aa%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%20code%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%0A" rel="stylesheet" type="text/css" />
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Preprocomb</h1>
+<h4 class="author"><em>Markus Vattulainen</em></h4>
+<h4 class="date"><em>2016-06-26</em></h4>
+
+
+
+<p>Preprocessing is often the most time-consuming phase in data analysis and preprocessing transformations interdependent in unexpected ways. This package helps to make preprocessing faster and more effective. It provides an S4 framework for creating and evaluating preprocessing combinations for classification, clustering and outlier detection. The framework supports adding of user-defined preprocessors and preprocessing phases. Default preprocessors can be used for low variance removal, missing value imputation, scaling, outlier removal, noise smoothing, feature selection and class imbalance correction.</p>
+<div id="test-data" class="section level2">
+<h2>Test data</h2>
+<p>Let’s start by adding contaminations to Iris-data to simulate the need for preprocessing:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">set.seed</span>(<span class="dv">1</span>)
+testdata &lt;-<span class="st"> </span>iris
+testdata[<span class="kw">sample</span>(<span class="dv">1</span>:<span class="dv">150</span>,<span class="dv">40</span>),<span class="dv">3</span>] &lt;-<span class="st"> </span><span class="ot">NA</span> <span class="co"># add missing values to the third variable</span>
+testdata[,<span class="dv">4</span>] &lt;-<span class="st"> </span><span class="kw">rnorm</span>(<span class="dv">150</span>, testdata[,<span class="dv">4</span>], <span class="dv">2</span>) <span class="co"># add noise to the fourth variable</span>
+testdata$Irrelevant &lt;-<span class="st"> </span><span class="kw">runif</span>(<span class="dv">150</span>, <span class="dv">0</span>, <span class="dv">1</span>) <span class="co"># add an irrelevant feature</span></code></pre></div>
+</div>
+<div id="interactive-mode" class="section level2">
+<h2>Interactive mode</h2>
+<p>In the interactive mode preprocessing techniques can be applied in a sequence with function prepro(). The resulting object contains the preprocessing call history, computations and the fitness of the preprocessed data for model fitting. In the example below missing values are imputed first with meanimpute and then outliers removed with Orh-algorithm. Support vector machine svmRadial from kernlab package is used as a classifier. The default classifier is rpart from rpart package.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(preprocomb)
+step1 &lt;-<span class="st"> </span><span class="kw">prepro</span>(testdata, <span class="st">&quot;meanimpute&quot;</span>, <span class="dt">model=</span><span class="st">&quot;svmRadial&quot;</span>)
+step2 &lt;-<span class="st"> </span><span class="kw">prepro</span>(step1, <span class="st">&quot;orhoutlier&quot;</span>, <span class="dt">model=</span><span class="st">&quot;svmRadial&quot;</span>)
+step2</code></pre></div>
+<pre><code>## # OBJECT: 
+## # class: orhoutlier 
+## # call history: meanimpute orhoutlier 
+## 
+## # COMPUTATIONS: 
+## # classification accuracy: 0.81 
+## # hopkins statistic, clustering tendency: 0.31 
+## # skewness of ORH scores, outlier tendency: -0.22 
+## 
+## # FITNESS FOR MODEL FITTING: 
+## # variance in all variables: TRUE 
+## # only finite values: TRUE 
+## # complete observations: TRUE 
+## # class balance: TRUE 
+## # n to p ratio more than 2: TRUE 
+## # 3 or more predictors and more than 20 observations: TRUE</code></pre>
+</div>
+<div id="programmatic-mode" class="section level2">
+<h2>Programmatic mode</h2>
+<p>In the programmatic mode search for the best combinations is executed. First, a grid of preprocessing combinations and corresponding preprocessed data sets is created. Secondly, the preprocessed data sets are evaluated for classification accuracy, clustering tendency and skewness of outlier scores In the example below the preprocessing pipeline consists 540 combinations and their evaluations.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">examplegrid &lt;-<span class="st"> </span><span class="kw">setgrid</span>(<span class="dt">phases=</span><span class="kw">c</span>(<span class="st">&quot;imputation&quot;</span>, <span class="st">&quot;outliers&quot;</span>, <span class="st">&quot;scaling&quot;</span>, <span class="st">&quot;smoothing&quot;</span>, <span class="st">&quot;selection&quot;</span>), <span class="dt">data=</span>testdata)
+exampleresult &lt;-<span class="st"> </span><span class="kw">preprocomb</span>(<span class="dt">grid=</span>examplegrid, <span class="dt">models=</span><span class="kw">c</span>(<span class="st">&quot;svmRadial&quot;</span>), <span class="dt">nholdout=</span><span class="dv">10</span>, <span class="dt">cluster=</span><span class="ot">TRUE</span>, <span class="dt">outlier=</span><span class="ot">TRUE</span>, <span class="dt">cores=</span><span class="dv">2</span>)</code></pre></div>
+<p>Extracting the wall-clock time of execution in minutes:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">exampleresult@walltime</code></pre></div>
+<pre><code>## [1] 48</code></pre>
+<p>Extracting the best combinations for classification:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">exampleresult@bestclassification</code></pre></div>
+<pre><code>##          imputation   outliers     scaling    smoothing  selection
+## 253 meanclassimpute   noaction  basicscale coarsesmooth rfselect50
+## 273 meanclassimpute   noaction minmaxscale coarsesmooth rfselect50
+## 218 meanclassimpute orhoutlier minmaxscale     noaction rfselect50
+## 208 meanclassimpute orhoutlier centerscale     noaction rfselect50
+## 258 meanclassimpute orhoutlier  basicscale coarsesmooth rfselect50
+## 278 meanclassimpute orhoutlier minmaxscale coarsesmooth rfselect50
+##      svmRadial   ALL_MEAN
+## 253 0.98+-0.02 0.98+-0.02
+## 273 0.98+-0.01 0.98+-0.01
+## 218 0.97+-0.04 0.97+-0.04
+## 208 0.97+-0.02 0.97+-0.02
+## 258 0.97+-0.02 0.97+-0.02
+## 278 0.97+-0.02 0.97+-0.02</code></pre>
+</div>
+<div id="default-options" class="section level2">
+<h2>Default options</h2>
+<p>The package is intended to be used with domain specific preprocessing phases and techniques. There are however a set of default options available. Phases:</p>
+<ul>
+<li>“imputation”, missing value imputation</li>
+<li>“variance”, low variance removal</li>
+<li>“smoothing”, noise smoothing</li>
+<li>“scaling”, value range scaling</li>
+<li>“outliers”, outlier removal</li>
+<li>“sampling”, class imbalance corrections</li>
+<li>“selection”, irrelevant feature selection</li>
+</ul>
+<p>Each of the phases has two or more preprocessing techniques including “noaction”. Available preprocessing techniques can be shown by:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">getpreprocessor</span>()</code></pre></div>
+<pre><code>##  [1] &quot;nearzerovar&quot;        &quot;naomit&quot;             &quot;meanimpute&quot;        
+##  [4] &quot;meanclassimpute&quot;    &quot;knnimpute&quot;          &quot;randomforestimpute&quot;
+##  [7] &quot;basicscale&quot;         &quot;centerscale&quot;        &quot;minmaxscale&quot;       
+## [10] &quot;decimalscale&quot;       &quot;softmaxscale&quot;       &quot;orhoutlier&quot;        
+## [13] &quot;oversample&quot;         &quot;undersample&quot;        &quot;rfselect75&quot;        
+## [16] &quot;rfselect50&quot;         &quot;lowesssmooth&quot;       &quot;coarsesmooth&quot;      
+## [19] &quot;noaction&quot;</code></pre>
+<p>and preprocecssor function definition by giving the name of the preprocessing technique as argument:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">getpreprocessor</span>(<span class="st">&quot;basicscale&quot;</span>)</code></pre></div>
+<pre><code>## {dataobject &lt;- initializedataclassobject(data.frame(x = scale(dataobject@x, center = FALSE), dataobject@y))</code></pre>
+</div>
+<div id="customization" class="section level2">
+<h2>Customization</h2>
+<p>Preproccessing techniques can be added to the system in two steps:</p>
+<p>Step 1: Function definition</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">scaleexample &lt;-<span class="st"> </span>function(dataobject) {
+dataobject &lt;-<span class="st"> </span><span class="kw">initializedataclassobject</span>(<span class="kw">data.frame</span>(<span class="dt">x=</span><span class="kw">scale</span>(dataobject@x), <span class="dt">y=</span>dataobject@y))
+}</code></pre></div>
+<p>Notice that added preprocecessing technique definition input and output are both DataClass objects. The slot “y” is a factor vector containing the class labels and slot “x” the other variables, which all must be numeric.</p>
+<p>Step 2: Adding of the function to the system</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">setpreprocessor</span>(<span class="st">&quot;scaleexample&quot;</span>, <span class="st">&quot;scaleexample(dataobject)&quot;</span>)</code></pre></div>
+<pre><code>## [1] &quot;transformdata&quot;</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">step3 &lt;-<span class="st"> </span><span class="kw">prepro</span>(step2, <span class="st">&quot;scaleexample&quot;</span>, <span class="dt">model=</span><span class="st">&quot;svmRadial&quot;</span>) <span class="co"># continues the example above</span>
+step3</code></pre></div>
+<pre><code>## # OBJECT: 
+## # class: scaleexample 
+## # call history: meanimpute orhoutlier scaleexample 
+## 
+## # COMPUTATIONS: 
+## # classification accuracy: 0.88 
+## # hopkins statistic, clustering tendency: 0.37 
+## # skewness of ORH scores, outlier tendency: -0.29 
+## 
+## # FITNESS FOR MODEL FITTING: 
+## # variance in all variables: TRUE 
+## # only finite values: TRUE 
+## # complete observations: TRUE 
+## # class balance: TRUE 
+## # n to p ratio more than 2: TRUE 
+## # 3 or more predictors and more than 20 observations: TRUE</code></pre>
+<p>Added preprocessing techniques can be added to phases and used in creating a new grid of combinations:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">newscaling &lt;-<span class="st"> </span><span class="kw">setphase</span>(<span class="st">&quot;newscaling&quot;</span>, <span class="kw">c</span>(<span class="st">&quot;noaction&quot;</span>, <span class="st">&quot;scaleexample&quot;</span>), <span class="ot">TRUE</span>)
+newexamplegrid &lt;-<span class="st"> </span><span class="kw">setgrid</span>(<span class="dt">phases=</span><span class="kw">c</span>(<span class="st">&quot;imputation&quot;</span>, <span class="st">&quot;newscaling&quot;</span>), <span class="dt">data=</span>testdata)</code></pre></div>
+</div>
+
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

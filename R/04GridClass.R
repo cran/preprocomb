@@ -1,6 +1,8 @@
 #' @include 03PreprocessorClass.R
 NULL
 
+## REPORT THE OUTCOME OF DATA VALIDATION
+
 reportexitstatus <- function(preprocesseddatasets){
 
   if(class(preprocesseddatasets)!="list"){stop("Argument 'preprocesseddatasets' to function 'reportexitstatus' must of a list.")}
@@ -21,6 +23,8 @@ reportexitstatus <- function(preprocesseddatasets){
 
 }
 
+## CREATE GRID OF PREPROCESSING COMBINATIONS FROM FROM PHASES
+
 creategrid <- function(phases){
   if(class(phases)!="list"){stop("Argument 'phases' to function 'creategrid' must of a list.")}
   grid <- expand.grid(lapply(phases, function(x) eval(as.name(x))@preprotransformations))
@@ -28,7 +32,7 @@ creategrid <- function(phases){
   return(grid)
 }
 
-## DATA FORMATION
+## PREPROCESS DATA FOR A SINGLE SUBCLASS OBJECT
 
 initializedataslot <- function(classname, dataobject){
 
@@ -51,6 +55,8 @@ initializedataslot <- function(classname, dataobject){
 
 }
 
+## PREPROCESS DATA FOR THE WHOLE GRID
+
 executepreprocessing <- function(grid, dataobject){
 
   if(class(grid)!="data.frame"){stop("Argument 'grid' must of a data frame of a GridClass object.")}
@@ -61,19 +67,25 @@ executepreprocessing <- function(grid, dataobject){
 
   for (rowingrid in 1:nrow(grid))
   {
-    out_preprocesseddatasets[rowingrid] <- initializedataslot(as.character(grid[rowingrid, firstcolumningrid]), dataobject) # first column of grid
+
+    # PREPROCESS INPUT DATA BY THE FIRST COLUMN OF THE GRID
+
+    out_preprocesseddatasets[[rowingrid]] <- initializedataslot(as.character(grid[rowingrid, firstcolumningrid]), dataobject) # first column of grid
 
     if (ncol(grid) > 1){
 
+      # PREPROCESS CONSEQUENT COLUMNS
+
       for (columningrid in 2:ncol(grid))
       {
-        out_preprocesseddatasets[rowingrid] <- initializedataslot(as.character(grid[rowingrid,columningrid]), out_preprocesseddatasets[[rowingrid]]@data)
+        out_preprocesseddatasets[[rowingrid]] <- initializedataslot(as.character(grid[rowingrid,columningrid]), out_preprocesseddatasets[[rowingrid]]@data)
       }
 
     }
 
   }
 
+  # VALIDATE AND REPORT PREPROCESSED DATA MODEL FITTING STATUS
   out_preprocesseddatasets <- lapply(out_preprocesseddatasets, function(x) slot(x, "data"))
   out_preprocesseddatasets <- lapply(out_preprocesseddatasets, validatedata)
   print(reportexitstatus(out_preprocesseddatasets))
@@ -83,20 +95,23 @@ executepreprocessing <- function(grid, dataobject){
 
 ## GRID
 
-#' GridClass
+#' container for preprocessor combinations and preprocessed data sets.
 #'
-#' GridClass is a container for preprocessor combinations and the corresponding preprocessed data sets.
-#' GridClass is an interface for extending the system.
+#' Preprocessing techniques defined with setpreprocessor() can be combined to a phase.
+#' Phases defined with setphase() can be combined to a grid of combinations with setgrid().
+#' The main programmatic use with preprocomb() takes a GridClass object as argument.
+#'
+#' GridClass is also an interface for extending the system to package 'metaheur', which takes
+#' a GridClass object to find near-optiomal combinations fast.
+#'
 #' @slot grid (data frame) preprocessor combinations
 #' @slot data (list) DataClass objects
 #' @slot validation (data frame) validation results
-#' @details Extensions can include approximate combinatorial optimization for finding near-best
-#' combinations faster.
 #' @export
 
 setClass("GridClass", representation(grid="data.frame", data="list", validation="data.frame"))
 
-#' setgrid
+#' constructor function for creating the combinations
 #'
 #' setgrid takes the preprocessing phases, which contain preprocessors and creates
 #' the combinations of them as a grid. It then computes and stores the transformed
@@ -107,8 +122,9 @@ setClass("GridClass", representation(grid="data.frame", data="list", validation=
 #' @param diagnostics (logical) run testpreprocessor(), defaults to TRUE
 #' @return a GridClass object
 #' @examples
-#' ## grid <- setgrid(phases=c("outliers", "selection"), data=iris)
-#' @details If there are missing value, imputation phase must be set as first phase.
+#' grid <- setgrid(phases=c("outliers", "selection"), data=iris)
+#' @details If there are missing values, imputation phase must be set as first phase.
+#' Default phase "sampling" can only be used with data, which has binary class labels.
 #' @export
 
 setgrid <- function(phases, data, diagnostics=TRUE){
@@ -116,6 +132,8 @@ setgrid <- function(phases, data, diagnostics=TRUE){
 # Validate arguments
 if(class(phases)!="character"){stop("Argument 'phases' must be a character vector.")}
 if(class(data)!="data.frame"){stop("Argument 'data' must of a data frame.")}
+
+issamplingincluded <- "sampling" %in% phases
 
 phases <- as.list(phases)
 if(!all(lapply(phases, function(x) class(eval(as.name(x))))=="PhaseClass")){
@@ -125,20 +143,29 @@ stop("All elements in argument 'phases' must point to PhaseClass objects.")}
 
 dataclassobject <- initializedataclassobject(data)
 
+hasmorethantwolevels <- length(levels(dataclassobject@y)) > 2
+
+if (issamplingincluded==TRUE & hasmorethantwolevels==TRUE) {stop("Default phase 'sampling' can only be used with data, which has binary class labels.")}
+
 gridclassobject <- new("GridClass")
+
+# Create grid
 
 gridclassobject@grid <- creategrid(phases)
 
-# Validate preprocessors
+# Test preprocessors
 
 if (diagnostics==TRUE){
 print("Running diagnostics on single preprocessors:")
 validation <- testpreprocessors(unique(unlist(gridclassobject@grid)))
 }
 print("Preprocessing data set by combinations:")
+
+# Preprocess data
+
 gridclassobject@data <- executepreprocessing(gridclassobject@grid, dataclassobject)
 
-# Validation results on combinations
+# Collect validation results on combinations
 validationresults <- data.frame(gridclassobject@grid, data.frame(t(data.frame(lapply(gridclassobject@data, extract)))))
 row.names(validationresults) <- NULL
 gridclassobject@validation <- validationresults
